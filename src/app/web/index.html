@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>TwinVent Offline Replay</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true">TV</div>
+    <div>
+      <div class="brand-name">TwinVent</div>
+      <div class="brand-subtitle">Offline benchmark replay</div>
+    </div>
+    <span class="offline-pill"><span class="online-dot"></span> Local only</span>
+  </header>
+
+  <main class="page-shell">
+    <section class="intro">
+      <p class="eyebrow">RESEARCH PROTOTYPE</p>
+      <h1>Explore a ventilator breath</h1>
+      <p class="intro-copy">Load one breath from the supplied test-lung dataset and compare its measured pressure with a demonstration prediction.</p>
+    </section>
+
+    <section class="notice" role="note">
+      <strong>Benchmark demo only</strong>
+      <span>The mock curve is hand-written, not trained or clinically calibrated. This app does not connect to or control a ventilator and must not guide patient care.</span>
+    </section>
+
+    <section class="panel controls-panel" aria-labelledby="choose-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">BREATH REPLAY</p>
+          <h2 id="choose-title">Choose data</h2>
+        </div>
+        <span id="sourceMeta" class="meta-text">Preparing local dataset index…</span>
+      </div>
+      <div class="control-grid">
+        <label>Dataset
+          <select id="sourceSelect">
+            <option value="train">train.csv · measured pressure included</option>
+            <option value="test">test.csv · no measured pressure</option>
+          </select>
+        </label>
+        <label>Breath ID
+          <div class="breath-control">
+            <button id="previousButton" class="icon-button" type="button" aria-label="Previous breath" title="Previous breath">‹</button>
+            <input id="breathId" type="number" step="1" value="1" inputmode="numeric">
+            <button id="nextButton" class="icon-button" type="button" aria-label="Next breath" title="Next breath">›</button>
+          </div>
+        </label>
+        <label>Predictor
+          <select id="modelSelect">
+            <option value="mock">Mock demonstration</option>
+            <option value="benchmark">Owner 1 benchmark model</option>
+          </select>
+        </label>
+        <div class="action-group">
+          <button id="loadButton" class="button button-secondary" type="button">Load breath</button>
+          <button id="predictButton" class="button button-primary" type="button" disabled>Generate prediction</button>
+        </div>
+      </div>
+      <p id="loadMessage" class="help-text" aria-live="polite">The first data index is built locally. Later selections use the saved index.</p>
+    </section>
+
+    <section class="status-row" aria-live="polite">
+      <div id="statusBadge" class="status-badge status-neutral"><span class="status-dot"></span><span id="statusText">Starting local app…</span></div>
+      <span id="modelVersion" class="meta-text"></span>
+    </section>
+
+    <section class="summary-grid" aria-label="Selected breath details">
+      <article class="summary-card"><span class="summary-label">Data source</span><strong id="summarySource">—</strong></article>
+      <article class="summary-card"><span class="summary-label">Breath</span><strong id="summaryBreath">—</strong></article>
+      <article class="summary-card"><span class="summary-label">Samples</span><strong id="summarySamples">—</strong></article>
+      <article class="summary-card"><span class="summary-label">Test lung R / C</span><strong id="summaryMechanics">—</strong></article>
+    </section>
+
+    <section class="charts-grid">
+      <article class="panel chart-panel">
+        <div class="chart-heading">
+          <div><p class="eyebrow">AIRWAY PRESSURE</p><h2>Measured and predicted</h2></div>
+          <span class="unit-label">cmH₂O</span>
+        </div>
+        <div class="legend">
+          <span><i class="legend-line legend-measured"></i>Measured</span>
+          <span><i class="legend-line legend-predicted"></i>Predicted</span>
+        </div>
+        <canvas id="pressureChart" aria-label="Measured and predicted pressure by time"></canvas>
+        <p id="pressureEmpty" class="empty-chart">Load a breath to show its pressure curve.</p>
+      </article>
+      <article class="panel chart-panel">
+        <div class="chart-heading">
+          <div><p class="eyebrow">BREATH INPUT</p><h2>Input over time</h2></div>
+          <span class="unit-label">u_in / valve state</span>
+        </div>
+        <div class="legend">
+          <span><i class="legend-line legend-input"></i>u_in</span>
+          <span><i class="legend-box"></i>u_out = 1</span>
+        </div>
+        <canvas id="inputChart" aria-label="Ventilator input and output valve state by time"></canvas>
+        <p id="inputEmpty" class="empty-chart">Load a breath to show its input signals.</p>
+      </article>
+    </section>
+
+    <section class="panel result-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">PREDICTION DETAILS</p><h2>Result for this breath</h2></div>
+        <span id="resultStatus" class="result-tag">Not run</span>
+      </div>
+      <p id="resultMessage" class="result-message">Choose a breath and generate a mock prediction. The benchmark model will be available here when Owner 1 supplies its packaged predictor.</p>
+      <div class="result-metrics">
+        <div><span>Peak predicted pressure</span><strong id="peakMetric">—</strong></div>
+        <div><span>Mean absolute difference</span><strong id="maeMetric">—</strong></div>
+        <div><span>Uncertainty</span><strong id="uncertaintyMetric">—</strong></div>
+      </div>
+      <p class="metric-note">The mean absolute difference is calculated for this displayed training breath only. It is not a model validation score.</p>
+    </section>
+
+    <section class="bottom-row">
+      <p>All processing runs on this computer. No cloud, analytics, external fonts, or remote scripts are used.</p>
+      <button id="clearButton" class="text-button" type="button">Clear local index and app log</button>
+    </section>
+    <footer>Test-lung benchmark replay · No patient data · No ventilator controls</footer>
+  </main>
+</body>
+</html>
