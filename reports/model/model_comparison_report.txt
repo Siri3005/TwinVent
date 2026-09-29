@@ -1,0 +1,29 @@
+MODEL COMPARISON REPORT
+============================================================
+
+XGBOOST
+------------------------------------------------------------
+Training MAE: 2.0236
+Training RMSE: 3.9545
+Validation MAE: 2.0382
+Validation RMSE: 3.9972
+Training Time: 58.75s
+
+LIGHTGBM
+------------------------------------------------------------
+Training MAE: 2.0979
+Training RMSE: 4.0466
+Validation MAE: 2.1112
+Validation RMSE: 4.0896
+Training Time: 25.45s
+
+
+CHOSEN MODEL: XGBoost
+------------------------------------------------------------
+Validation MAE: 2.0382
+Validation RMSE: 3.9972
+
+REASON:
+- Lowest validation MAE among all tested models
+- Good balance between accuracy and training speed
+- Tree-based models handle the tabular features well

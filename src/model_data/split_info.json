@@ -1,0 +1,122 @@
+{
+  "random_seed": 42,
+  "validation_ratio": 0.2,
+  "total_breaths": 75450,
+  "train_breaths": 60360,
+  "val_breaths": 15090,
+  "train_rows": 4828800,
+  "val_rows": 1207200,
+  "train_rc_distribution": [
+    {
+      "R": 5,
+      "C": 10,
+      "count": 530880,
+      "percentage": 10.99
+    },
+    {
+      "R": 5,
+      "C": 20,
+      "count": 527440,
+      "percentage": 10.92
+    },
+    {
+      "R": 5,
+      "C": 50,
+      "count": 529280,
+      "percentage": 10.96
+    },
+    {
+      "R": 20,
+      "C": 10,
+      "count": 390320,
+      "percentage": 8.08
+    },
+    {
+      "R": 20,
+      "C": 20,
+      "count": 400320,
+      "percentage": 8.29
+    },
+    {
+      "R": 20,
+      "C": 50,
+      "count": 522320,
+      "percentage": 10.82
+    },
+    {
+      "R": 50,
+      "C": 10,
+      "count": 873040,
+      "percentage": 18.08
+    },
+    {
+      "R": 50,
+      "C": 20,
+      "count": 533360,
+      "percentage": 11.05
+    },
+    {
+      "R": 50,
+      "C": 50,
+      "count": 521840,
+      "percentage": 10.81
+    }
+  ],
+  "val_rc_distribution": [
+    {
+      "R": 5,
+      "C": 10,
+      "count": 134080,
+      "percentage": 11.11
+    },
+    {
+      "R": 5,
+      "C": 20,
+      "count": 134720,
+      "percentage": 11.16
+    },
+    {
+      "R": 5,
+      "C": 50,
+      "count": 132400,
+      "percentage": 10.97
+    },
+    {
+      "R": 20,
+      "C": 10,
+      "count": 95280,
+      "percentage": 7.89
+    },
+    {
+      "R": 20,
+      "C": 20,
+      "count": 96320,
+      "percentage": 7.98
+    },
+    {
+      "R": 20,
+      "C": 50,
+      "count": 132560,
+      "percentage": 10.98
+    },
+    {
+      "R": 50,
+      "C": 10,
+      "count": 221120,
+      "percentage": 18.32
+    },
+    {
+      "R": 50,
+      "C": 20,
+      "count": 127440,
+      "percentage": 10.56
+    },
+    {
+      "R": 50,
+      "C": 50,
+      "count": 133280,
+      "percentage": 11.04
+    }
+  ],
+  "chronological_order_maintained": true
+}

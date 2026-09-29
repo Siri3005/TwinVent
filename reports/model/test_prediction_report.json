@@ -1,0 +1,19 @@
+{
+  "validation": {
+    "columns_present": true,
+    "no_nulls": true,
+    "breath_structure": "valid",
+    "row_count": "match",
+    "columns": "match",
+    "id_alignment": "match",
+    "finite_values": true,
+    "unique_ids": true
+  },
+  "prediction_stats": {
+    "mean": 11.221331596374512,
+    "std": 6.999157905578613,
+    "min": 0.39564424753189087,
+    "max": 55.243534088134766,
+    "total_predictions": 4024000
+  }
+}

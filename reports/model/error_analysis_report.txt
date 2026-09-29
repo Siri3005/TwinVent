@@ -1,0 +1,30 @@
+ERROR ANALYSIS REPORT
+============================================================
+
+OVERALL ERROR STATISTICS:
+------------------------------------------------------------
+Mean Error: -0.0219
+Std Error: 3.9972
+Mean Absolute Error: 2.0382
+Median Absolute Error: 0.5841
+95th Percentile Error: 9.6991
+Max Absolute Error: 40.4950
+
+ERROR BY R-C GROUPS:
+------------------------------------------------------------
+R=5, C=10: MAE=2.4985, RMSE=4.7942
+R=5, C=20: MAE=1.6889, RMSE=2.9130
+R=5, C=50: MAE=1.3627, RMSE=2.2366
+R=20, C=10: MAE=2.4433, RMSE=4.6614
+R=20, C=20: MAE=1.7945, RMSE=3.3570
+R=20, C=50: MAE=1.4245, RMSE=2.7917
+R=50, C=10: MAE=2.4791, RMSE=4.6336
+R=50, C=20: MAE=2.3964, RMSE=4.9651
+R=50, C=50: MAE=2.0217, RMSE=4.1747
+
+============================================================
+KNOWN WEAK CASES:
+------------------------------------------------------------
+- Higher errors observed for R=5, C=10 combinations
+- Model performance varies slightly across different breath phases
+- Extreme pressure values show higher prediction errors

@@ -1,0 +1,21 @@
+{
+  "model_type": "Ridge Regression",
+  "model_class": "<class 'sklearn.linear_model._ridge.Ridge'>",
+  "features": [
+    "R",
+    "C",
+    "time_step",
+    "u_in",
+    "u_out"
+  ],
+  "target": "pressure",
+  "alpha": 1.0,
+  "coefficients": {
+    "R": 0.007441822921124838,
+    "C": -0.020625973749494642,
+    "time_step": -0.30008262433019045,
+    "u_in": 0.0453554525918345,
+    "u_out": -9.336931730400709
+  },
+  "intercept": 17.404542459136795
+}

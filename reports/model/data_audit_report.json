@@ -1,0 +1,251 @@
+{
+  "train": {
+    "columns": {
+      "passed": true,
+      "expected": [
+        "id",
+        "breath_id",
+        "R",
+        "C",
+        "time_step",
+        "u_in",
+        "u_out",
+        "pressure"
+      ],
+      "actual": [
+        "id",
+        "breath_id",
+        "R",
+        "C",
+        "time_step",
+        "u_in",
+        "u_out",
+        "pressure"
+      ],
+      "missing": [],
+      "extra": []
+    },
+    "nulls": {
+      "passed": true,
+      "null_columns": {},
+      "total_nulls": 0
+    },
+    "row_count": {
+      "passed": true,
+      "expected": 6036000,
+      "actual": 6036000,
+      "difference": 0
+    },
+    "id_uniqueness": {
+      "passed": true,
+      "duplicate_count": 0,
+      "unique_ids": 6036000,
+      "total_ids": 6036000
+    },
+    "breath_structure": {
+      "passed": true,
+      "total_breaths": 75450,
+      "invalid_breath_count": 0,
+      "expected_samples": 80
+    },
+    "ordering": {
+      "passed": true,
+      "breaths_with_issues": 0,
+      "sample_issues": []
+    },
+    "rc_combinations": {
+      "passed": true,
+      "expected_count": 9,
+      "found_count": 9,
+      "missing": [],
+      "extra": [],
+      "distribution": [
+        {
+          "R": 5,
+          "C": 10,
+          "count": 664960
+        },
+        {
+          "R": 5,
+          "C": 20,
+          "count": 662160
+        },
+        {
+          "R": 5,
+          "C": 50,
+          "count": 661680
+        },
+        {
+          "R": 20,
+          "C": 10,
+          "count": 485600
+        },
+        {
+          "R": 20,
+          "C": 20,
+          "count": 496640
+        },
+        {
+          "R": 20,
+          "C": 50,
+          "count": 654880
+        },
+        {
+          "R": 50,
+          "C": 10,
+          "count": 1094160
+        },
+        {
+          "R": 50,
+          "C": 20,
+          "count": 660800
+        },
+        {
+          "R": 50,
+          "C": 50,
+          "count": 655120
+        }
+      ]
+    },
+    "overall_passed": true
+  },
+  "test": {
+    "columns": {
+      "passed": true,
+      "expected": [
+        "id",
+        "breath_id",
+        "R",
+        "C",
+        "time_step",
+        "u_in",
+        "u_out"
+      ],
+      "actual": [
+        "id",
+        "breath_id",
+        "R",
+        "C",
+        "time_step",
+        "u_in",
+        "u_out"
+      ],
+      "missing": [],
+      "extra": []
+    },
+    "nulls": {
+      "passed": true,
+      "null_columns": {},
+      "total_nulls": 0
+    },
+    "row_count": {
+      "passed": true,
+      "expected": 4024000,
+      "actual": 4024000,
+      "difference": 0
+    },
+    "id_uniqueness": {
+      "passed": true,
+      "duplicate_count": 0,
+      "unique_ids": 4024000,
+      "total_ids": 4024000
+    },
+    "breath_structure": {
+      "passed": true,
+      "total_breaths": 50300,
+      "invalid_breath_count": 0,
+      "expected_samples": 80
+    },
+    "ordering": {
+      "passed": true,
+      "breaths_with_issues": 0,
+      "sample_issues": []
+    },
+    "rc_combinations": {
+      "passed": true,
+      "expected_count": 9,
+      "found_count": 9,
+      "missing": [],
+      "extra": [],
+      "distribution": [
+        {
+          "R": 5,
+          "C": 10,
+          "count": 434960
+        },
+        {
+          "R": 5,
+          "C": 20,
+          "count": 436080
+        },
+        {
+          "R": 5,
+          "C": 50,
+          "count": 435760
+        },
+        {
+          "R": 20,
+          "C": 10,
+          "count": 343360
+        },
+        {
+          "R": 20,
+          "C": 20,
+          "count": 327040
+        },
+        {
+          "R": 20,
+          "C": 50,
+          "count": 440000
+        },
+        {
+          "R": 50,
+          "C": 10,
+          "count": 726480
+        },
+        {
+          "R": 50,
+          "C": 20,
+          "count": 440240
+        },
+        {
+          "R": 50,
+          "C": 50,
+          "count": 440080
+        }
+      ]
+    },
+    "overall_passed": true
+  },
+  "sample_submission": {
+    "columns": {
+      "passed": true,
+      "expected": [
+        "id",
+        "pressure"
+      ],
+      "actual": [
+        "id",
+        "pressure"
+      ],
+      "missing": [],
+      "extra": []
+    },
+    "nulls": {
+      "passed": true,
+      "null_columns": {},
+      "total_nulls": 0
+    },
+    "row_count": {
+      "passed": true,
+      "note": "No expected count for this dataset"
+    },
+    "id_uniqueness": {
+      "passed": true,
+      "duplicate_count": 0,
+      "unique_ids": 4024000,
+      "total_ids": 4024000
+    },
+    "overall_passed": true
+  }
+}

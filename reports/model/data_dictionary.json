@@ -1,0 +1,82 @@
+{
+  "id": {
+    "dtype": "int64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": 1.0,
+    "max": 6036000.0,
+    "mean": 3018000.5,
+    "median": 3018000.5,
+    "std": 1742443.2567518519
+  },
+  "breath_id": {
+    "dtype": "int64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": 1.0,
+    "max": 125749.0,
+    "mean": 62838.85870112658,
+    "median": 62765.5,
+    "std": 36335.25619449706
+  },
+  "R": {
+    "dtype": "int64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": 5.0,
+    "max": 50.0,
+    "mean": 27.036182902584493,
+    "median": 20.0,
+    "std": 19.595490487732754
+  },
+  "C": {
+    "dtype": "int64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": 10.0,
+    "max": 50.0,
+    "mean": 26.080715705765407,
+    "median": 20.0,
+    "std": 17.152314235013286
+  },
+  "time_step": {
+    "dtype": "float64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": 0.0,
+    "max": 2.9372379779815674,
+    "mean": 1.3072248668385074,
+    "median": 1.308122634887695,
+    "std": 0.7659778182587142
+  },
+  "u_in": {
+    "dtype": "float64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "mean": 7.321614728628858,
+    "median": 4.386146435306453,
+    "std": 13.434701105129037
+  },
+  "u_out": {
+    "dtype": "int64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.6204493041749503,
+    "median": 1.0,
+    "std": 0.48527518393005653
+  },
+  "pressure": {
+    "dtype": "float64",
+    "null_count": 0,
+    "null_percentage": 0.0,
+    "min": -1.895744294564641,
+    "max": 64.8209917386395,
+    "mean": 11.220408111543685,
+    "median": 7.032628177739799,
+    "std": 8.109703450419993
+  }
+}

@@ -1,0 +1,32 @@
+BASELINE MODEL REPORT
+============================================================
+
+MODEL DETAILS:
+  Type: Ridge Regression
+  Features: R, C, time_step, u_in, u_out
+  Alpha: 1.0
+
+TRAINING METRICS:
+  MAE: 3.9436
+  RMSE: 6.3571
+  Samples: 4,828,800
+  Training Time: 0.53s
+
+VALIDATION METRICS:
+  MAE: 3.9607
+  RMSE: 6.3989
+  Samples: 1,207,200
+  Breaths: 15,090
+  Avg Breath MAE: 3.9607
+  Avg Breath RMSE: 5.9232
+
+R-C GROUP METRICS:
+  R=5, C=10: MAE=4.6518, RMSE=7.2775
+  R=5, C=20: MAE=3.7354, RMSE=5.7325
+  R=5, C=50: MAE=3.4661, RMSE=5.2200
+  R=20, C=10: MAE=4.5272, RMSE=7.0764
+  R=20, C=20: MAE=3.7144, RMSE=5.8854
+  R=20, C=50: MAE=3.1477, RMSE=5.3155
+  R=50, C=10: MAE=4.5310, RMSE=6.7517
+  R=50, C=20: MAE=4.1509, RMSE=7.5408
+  R=50, C=50: MAE=3.4375, RMSE=6.1944
