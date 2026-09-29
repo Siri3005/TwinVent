@@ -1,0 +1,21 @@
+TEST PREDICTION REPORT
+============================================================
+
+VALIDATION CHECKS:
+------------------------------------------------------------
+columns_present: True
+no_nulls: True
+breath_structure: valid
+row_count: match
+columns: match
+id_alignment: match
+finite_values: True
+unique_ids: True
+
+PREDICTION STATISTICS:
+------------------------------------------------------------
+Total Predictions: 4,024,000
+Mean Pressure: 11.2213
+Std Pressure: 6.9992
+Min Pressure: 0.3956
+Max Pressure: 55.2435
