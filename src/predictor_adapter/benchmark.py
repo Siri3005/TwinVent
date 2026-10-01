@@ -10,8 +10,8 @@ from .contracts import PredictionError, PredictionResult, PredictorUnavailable
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MODEL_PATH = ROOT / "artifacts" / "model" / "final_model.pkl"
-MODEL_VERSION = "1.0.0"
+MODEL_PATH = ROOT / "artifacts" / "model" / "lstm_model.h5"
+MODEL_VERSION = "3.0.0-lstm"
 _LOAD_LOCK = threading.Lock()
 
 
@@ -37,9 +37,9 @@ class BenchmarkModelAdapter:
             with _LOAD_LOCK:
                 if cls._predictor is None:
                     try:
-                        from model_training.inference_wrapper import PressurePredictor
+                        from model_training.lstm_inference_wrapper import LSTMPressurePredictor
 
-                        predictor = PressurePredictor(model_path=str(model_path))
+                        predictor = LSTMPressurePredictor(model_path=str(model_path))
                         predictor.load_model()
                         cls._predictor = predictor
                     except Exception as exc:

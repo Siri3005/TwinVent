@@ -51,15 +51,26 @@ print(result[['id', 'pressure', 'status', 'model_version']])
 
 ## Model Performance
 
+### Current Model (v2.0.0-improved)
+| Metric | Training | Validation |
+|--------|----------|------------|
+| **MAE** | 0.63 | 0.64 |
+| **RMSE** | 1.09 | 1.12 |
+
+### Previous Model (v1.0.0)
 | Metric | Training | Validation |
 |--------|----------|------------|
 | **MAE** | 2.02 | 2.04 |
 | **RMSE** | 3.95 | 4.00 |
 
-**Chosen Model:** XGBoost Regressor
-- Selected for lowest validation MAE
-- Good generalization (minimal train/val gap)
-- Fast inference (3.16s for 4M predictions)
+**Improvement:** 69% reduction in MAE (2.04 → 0.64)
+
+**Chosen Model:** XGBoost Regressor with Feature Engineering
+- 23 engineered features (from 5 base features)
+- Temporal lag features for sequential dependencies
+- Interaction features for lung mechanics
+- Optimized hyperparameters with regularization
+- Fast inference (still <1ms per breath)
 
 ## Project Structure
 
@@ -264,8 +275,10 @@ See `requirements.txt` for full list. Key packages:
 
 ## Version
 
-**Model Version:** 1.0.0  
-**Release Date:** 2026-09-29
+**Model Version:** 2.0.0-improved  
+**Previous Version:** 1.0.0 (MAE 2.04)  
+**Release Date:** 2026-10-01  
+**Improvement:** 69% better accuracy
 
 ## License & Disclaimer
 

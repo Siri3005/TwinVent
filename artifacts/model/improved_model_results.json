@@ -1,0 +1,102 @@
+{
+  "train_mae": 0.6286168822918933,
+  "train_rmse": 1.088625252604411,
+  "val_mae": 0.6419824781178659,
+  "val_rmse": 1.1162383562966507,
+  "training_time": 277.98813676834106,
+  "n_features": 23,
+  "feature_importance": [
+    {
+      "feature": "u_out_lag2",
+      "importance": 0.7198617458343506
+    },
+    {
+      "feature": "time_sin",
+      "importance": 0.11360888928174973
+    },
+    {
+      "feature": "RC_ratio",
+      "importance": 0.01903533935546875
+    },
+    {
+      "feature": "u_in_cumsum",
+      "importance": 0.017598526552319527
+    },
+    {
+      "feature": "C",
+      "importance": 0.0166037455201149
+    },
+    {
+      "feature": "u_out_time",
+      "importance": 0.015452536754310131
+    },
+    {
+      "feature": "u_in_lag2",
+      "importance": 0.013965079560875893
+    },
+    {
+      "feature": "time_normalized",
+      "importance": 0.010948089882731438
+    },
+    {
+      "feature": "is_early_phase",
+      "importance": 0.00914032943546772
+    },
+    {
+      "feature": "R",
+      "importance": 0.008960551582276821
+    },
+    {
+      "feature": "is_late_phase",
+      "importance": 0.008448026143014431
+    },
+    {
+      "feature": "u_in_roll_mean_5",
+      "importance": 0.008239885792136192
+    },
+    {
+      "feature": "time_step",
+      "importance": 0.007233116310089827
+    },
+    {
+      "feature": "time_cos",
+      "importance": 0.004602533299475908
+    },
+    {
+      "feature": "u_out_lag1",
+      "importance": 0.003913212101906538
+    },
+    {
+      "feature": "u_in_C",
+      "importance": 0.003626049729064107
+    },
+    {
+      "feature": "RC_product",
+      "importance": 0.0033945098984986544
+    },
+    {
+      "feature": "u_out",
+      "importance": 0.003262216690927744
+    },
+    {
+      "feature": "u_in_R",
+      "importance": 0.0031227844301611185
+    },
+    {
+      "feature": "u_in_lag1",
+      "importance": 0.0027624580543488264
+    },
+    {
+      "feature": "u_in_time",
+      "importance": 0.002200123155489564
+    },
+    {
+      "feature": "u_in_RC",
+      "importance": 0.002111264271661639
+    },
+    {
+      "feature": "u_in",
+      "importance": 0.001908966340124607
+    }
+  ]
+}
