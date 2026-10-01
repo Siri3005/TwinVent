@@ -298,7 +298,7 @@ Refer to project documentation and Workflow 1 specification for details.
 2. From this repository folder, run `python run_app.py` in PowerShell or a terminal.
 3. Open `http://127.0.0.1:8765` on the same computer.
 4. Select `train.csv` or `test.csv`, enter a breath ID, load the breath, and choose **Generate prediction**.
-5. Select **Mock demonstration** for an illustrative, hand-written curve. **Owner 1 benchmark model** stays unavailable until a compatible model is placed at `artifacts/model/predictor.py`.
+5. Select **Owner 1 benchmark model** to run the trained `artifacts/model/final_model.pkl` through the adapter. Install `requirements.txt` before going offline. Select **Mock demonstration** only for an illustrative, hand-written curve.
 6. Stop the server with Ctrl+C in the terminal.
 
 The first dataset selection scans the chosen CSV to build a local index. Later breath lookups use the generated index under `.twinvent/cache/`. The source files are read in place and are not copied. The app log stores only source, breath ID, status, model version, and time; it does not store waveform values. Use **Clear local index and app log** to remove generated index files and the local event log.

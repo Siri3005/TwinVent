@@ -4,126 +4,152 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>TwinVent Offline Replay</title>
+  <title>TwinVent · Offline Pulmonary Digital Twin</title>
   <link rel="stylesheet" href="/assets/styles.css">
   <script src="/assets/app.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand-mark" aria-hidden="true">TV</div>
-    <div>
-      <div class="brand-name">TwinVent</div>
-      <div class="brand-subtitle">Offline benchmark replay</div>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand-mark" aria-hidden="true">TV</div>
+      <div class="hero-copy">
+        <p class="eyebrow hero-eyebrow">OFFLINE TEST-LUNG RESEARCH PROTOTYPE</p>
+        <h1>TwinVent</h1>
+        <p class="hero-subtitle">Offline Pulmonary Digital Twin</p>
+        <p class="hero-description">Learn the current lung state from breath data and simulate how a changed ventilation input affects airway pressure.</p>
+      </div>
+      <div class="system-pills" aria-label="System status">
+        <span><i></i> Offline</span><span><i></i> Local inference</span>
+        <span id="modelReadyPill" class="pill-muted"><i></i> Model status shown below</span>
+        <span class="pill-muted"><i></i> Test-lung benchmark</span>
+      </div>
     </div>
-    <span class="offline-pill"><span class="online-dot"></span> Local only</span>
   </header>
 
   <main class="page-shell">
-    <section class="intro">
-      <p class="eyebrow">RESEARCH PROTOTYPE</p>
-      <h1>Explore a ventilator breath</h1>
-      <p class="intro-copy">Load one breath from the supplied test-lung dataset and compare its measured pressure with a demonstration prediction.</p>
+    <section class="overview-row">
+      <div class="what-box"><p class="eyebrow">WHAT IS TWINVENT?</p>
+        <p>TwinVent is an offline research prototype that replays test-lung breaths and simulates how a changed input may alter predicted airway pressure.</p>
+        <small>Current validation uses a controlled test-lung benchmark. Patient outcomes and clinical ventilator settings are not represented.</small>
+      </div>
+      <div id="statusBadge" class="status-badge status-neutral" aria-live="polite"><span class="status-dot"></span><span id="statusText">Starting local app…</span></div>
     </section>
 
-    <section class="notice" role="note">
-      <strong>Benchmark demo only</strong>
-      <span>The mock curve is hand-written, not trained or clinically calibrated. This app does not connect to or control a ventilator and must not guide patient care.</span>
-    </section>
+    <nav class="pipeline" aria-label="TwinVent process">
+      <a href="#breath-data"><span>1</span><strong>BREATH DATA</strong><small>Select a breath</small></a><b aria-hidden="true">→</b>
+      <a href="#twin-state"><span>2</span><strong>DIGITAL TWIN</strong><small>Represent test-lung state</small></a><b aria-hidden="true">→</b>
+      <a href="#current-response"><span>3</span><strong>CURRENT RESPONSE</strong><small>Predict pressure</small></a><b aria-hidden="true">→</b>
+      <a href="#what-if"><span>4</span><strong>WHAT-IF</strong><small>Modify input</small></a><b aria-hidden="true">→</b>
+      <a href="#predicted-effect"><span>5</span><strong>PREDICTED RESPONSE</strong><small>Compare outcomes</small></a>
+    </nav>
 
-    <section class="panel controls-panel" aria-labelledby="choose-title">
+    <section id="breath-data" class="panel section-panel breath-panel" aria-labelledby="breath-title">
       <div class="section-heading">
-        <div>
-          <p class="eyebrow">BREATH REPLAY</p>
-          <h2 id="choose-title">Choose data</h2>
-        </div>
+        <div class="heading-copy"><p class="eyebrow">STEP 1</p><h2 id="breath-title">Breath Data</h2><p>Select and replay test-lung breath data.</p></div>
         <span id="sourceMeta" class="meta-text">Preparing local dataset index…</span>
       </div>
       <div class="control-grid">
-        <label>Dataset
-          <select id="sourceSelect">
-            <option value="train">train.csv · measured pressure included</option>
-            <option value="test">test.csv · no measured pressure</option>
-          </select>
-        </label>
-        <label>Breath ID
-          <div class="breath-control">
-            <button id="previousButton" class="icon-button" type="button" aria-label="Previous breath" title="Previous breath">‹</button>
-            <input id="breathId" type="number" step="1" value="1" inputmode="numeric">
-            <button id="nextButton" class="icon-button" type="button" aria-label="Next breath" title="Next breath">›</button>
-          </div>
-        </label>
-        <label>Predictor
-          <select id="modelSelect">
-            <option value="mock">Mock demonstration</option>
-            <option value="benchmark">Owner 1 benchmark model</option>
-          </select>
-        </label>
-        <div class="action-group">
-          <button id="loadButton" class="button button-secondary" type="button">Load breath</button>
-          <button id="predictButton" class="button button-primary" type="button" disabled>Generate prediction</button>
-        </div>
+        <label>Dataset<select id="sourceSelect"><option value="train">train.csv · measured pressure</option><option value="test">test.csv · no measured pressure</option></select></label>
+        <label>Breath ID<div class="breath-control">
+          <button id="previousButton" class="icon-button" type="button" aria-label="Previous breath" title="Previous breath">‹</button>
+          <input id="breathId" type="number" step="1" value="1" inputmode="numeric">
+          <button id="nextButton" class="icon-button" type="button" aria-label="Next breath" title="Next breath">›</button>
+        </div></label>
+        <label>Replay speed<select id="replaySpeed" aria-label="Replay speed"><option value="2500">0.5×</option><option value="1400" selected>1×</option><option value="700">2×</option></select></label>
+        <label>Pressure model<select id="modelSelect"><option value="benchmark" selected>Trained benchmark · v1.0.0</option><option value="mock">Illustrative mock</option></select></label>
+        <div class="action-group"><button id="loadButton" class="button button-secondary" type="button">Load breath</button><button id="predictButton" class="button button-primary" type="button" disabled>Predict</button></div>
+        <div class="replay-actions"><button id="playButton" class="text-button" type="button">▶ Play</button><button id="pauseButton" class="text-button" type="button">Ⅱ Pause</button></div>
       </div>
-      <p id="loadMessage" class="help-text" aria-live="polite">The first data index is built locally. Later selections use the saved index.</p>
+      <p id="loadMessage" class="help-text" aria-live="polite">No breath loaded. Select a breath and choose Load.</p>
+      <div class="data-summary" aria-label="Selected breath summary">
+        <div><small>DATASET</small><strong id="summarySource">—</strong></div>
+        <div><small>BREATH</small><strong id="summaryBreath">—</strong></div>
+        <div><small>SAMPLES</small><strong id="summarySamples">—</strong></div>
+        <div><small>DATA TYPE</small><strong>Test-lung benchmark</strong></div>
+        <div class="reference-rc"><small>BENCHMARK TEST-LUNG R / C</small><strong id="summaryMechanics">—</strong></div>
+      </div>
     </section>
 
-    <section class="status-row" aria-live="polite">
-      <div id="statusBadge" class="status-badge status-neutral"><span class="status-dot"></span><span id="statusText">Starting local app…</span></div>
-      <span id="modelVersion" class="meta-text"></span>
-    </section>
-
-    <section class="summary-grid" aria-label="Selected breath details">
-      <article class="summary-card"><span class="summary-label">Data source</span><strong id="summarySource">—</strong></article>
-      <article class="summary-card"><span class="summary-label">Breath</span><strong id="summaryBreath">—</strong></article>
-      <article class="summary-card"><span class="summary-label">Samples</span><strong id="summarySamples">—</strong></article>
-      <article class="summary-card"><span class="summary-label">Test lung R / C</span><strong id="summaryMechanics">—</strong></article>
-    </section>
-
-    <section class="charts-grid">
-      <article class="panel chart-panel">
-        <div class="chart-heading">
-          <div><p class="eyebrow">AIRWAY PRESSURE</p><h2>Measured and predicted</h2></div>
-          <span class="unit-label">cmH₂O</span>
-        </div>
-        <div class="legend">
-          <span><i class="legend-line legend-measured"></i>Measured</span>
-          <span><i class="legend-line legend-predicted"></i>Predicted</span>
-        </div>
-        <canvas id="pressureChart" aria-label="Measured and predicted pressure by time"></canvas>
-        <p id="pressureEmpty" class="empty-chart">Load a breath to show its pressure curve.</p>
-      </article>
-      <article class="panel chart-panel">
-        <div class="chart-heading">
-          <div><p class="eyebrow">BREATH INPUT</p><h2>Input over time</h2></div>
-          <span class="unit-label">u_in / valve state</span>
-        </div>
-        <div class="legend">
-          <span><i class="legend-line legend-input"></i>u_in</span>
-          <span><i class="legend-box"></i>u_out = 1</span>
-        </div>
-        <canvas id="inputChart" aria-label="Ventilator input and output valve state by time"></canvas>
-        <p id="inputEmpty" class="empty-chart">Load a breath to show its input signals.</p>
-      </article>
-    </section>
-
-    <section class="panel result-panel">
+    <section id="twin-state" class="panel twin-section" aria-labelledby="twin-title">
       <div class="section-heading">
-        <div><p class="eyebrow">PREDICTION DETAILS</p><h2>Result for this breath</h2></div>
-        <span id="resultStatus" class="result-tag">Not run</span>
+        <div class="heading-copy"><p class="eyebrow">STEP 2 · CURRENT STATE</p><h2 id="twin-title">Digital Twin</h2><p>Current benchmark-conditioned representation of the test-lung mechanics.</p></div>
+        <button id="resetTwinButton" class="button button-secondary" type="button">Reset Twin</button>
       </div>
-      <p id="resultMessage" class="result-message">Choose a breath and generate a mock prediction. The benchmark model will be available here when Owner 1 supplies its packaged predictor.</p>
-      <div class="result-metrics">
-        <div><span>Peak predicted pressure</span><strong id="peakMetric">—</strong></div>
-        <div><span>Mean absolute difference</span><strong id="maeMetric">—</strong></div>
-        <div><span>Uncertainty</span><strong id="uncertaintyMetric">—</strong></div>
+      <div class="twin-layout">
+        <div class="twin-core">
+          <div class="twin-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="twin-monogram">TV</div>
+          <p class="eyebrow">TWINVENT DIGITAL TWIN</p><h3>CURRENT TEST-LUNG STATE</h3>
+          <div class="core-rc"><div><span>R</span><strong id="twinR">—</strong></div><div><span>C</span><strong id="twinC">—</strong></div></div>
+          <strong id="twinStatus" class="twin-state-tag">WAITING FOR BREATH</strong>
+          <p id="twinCoreNote" class="twin-core-note">Benchmark test-lung condition</p>
+        </div>
+        <div class="twin-details">
+          <div class="twin-metric"><small>STATE SOURCE</small><strong id="twinSource">Waiting</strong><span>Benchmark test-lung condition</span></div>
+          <div class="twin-metric"><small>STATE VALIDITY</small><strong id="twinValidity">Waiting</strong><span>Current replay condition</span></div>
+          <div class="twin-metric"><small>SIGNAL QUALITY</small><strong id="twinQuality">Waiting</strong><span>80-sample breath validation</span></div>
+          <div class="twin-metric"><small>CURRENT BREATH</small><strong id="twinBreath">—</strong><span>Selected replay</span></div>
+          <div class="twin-metric"><small>PROCESSED REPLAY BREATHS</small><strong id="twinCount">0</strong><span>Unique valid breaths in this condition</span></div>
+          <div class="twin-metric"><small>TIME CONSTANT</small><strong id="twinTau">Not available</strong><span>Not identifiable from current signals</span></div>
+          <div class="twin-metric"><small>UNCERTAINTY</small><strong id="twinUncertainty">Not available</strong><span>No confidence score is inferred</span></div>
+        </div>
       </div>
-      <p class="metric-note">The mean absolute difference is calculated for this displayed training breath only. It is not a model validation score.</p>
+      <div class="twin-flow"><span>BREATH DATA</span><b>→</b><strong>CURRENT TWIN STATE</strong><b>→</b><span>PRESSURE MODEL</span><b>→</b><span>WHAT-IF SCENARIO</span><b>→</b><span>PREDICTED RESPONSE</span></div>
+      <div class="role-explanation" aria-label="What each part does">
+        <div><strong>DIGITAL TWIN</strong><span>Represents the current test-lung mechanics.</span></div>
+        <div><strong>PRESSURE MODEL</strong><span>Predicts the airway-pressure response.</span></div>
+        <div><strong>WHAT-IF ENGINE</strong><span>Tests how predicted pressure changes when the input is modified.</span></div>
+      </div>
+      <p class="twin-explanation">TwinVent maintains the current test-lung state and uses the pressure model to simulate how a modified input changes the predicted airway-pressure response.</p>
+      <p class="twin-caveat"><span id="twinConfidence">R/C estimation from the supplied signals is not currently identifiable. Uncertainty: Not available.</span> <span id="twinUpdatedAt"></span></p>
     </section>
 
-    <section class="bottom-row">
-      <p>All processing runs on this computer. No cloud, analytics, external fonts, or remote scripts are used.</p>
-      <button id="clearButton" class="text-button" type="button">Clear local index and app log</button>
+    <section id="current-response" class="section-panel response-section" aria-labelledby="response-title">
+      <div class="section-heading"><div class="heading-copy"><p class="eyebrow">STEP 3 · CURRENT</p><h2 id="response-title">Current Breath Response</h2><p>Compare measured airway pressure with the model prediction for the selected breath.</p></div><span id="resultStatus" class="result-tag">Waiting</span></div>
+      <div class="response-metrics">
+        <div><small>CURRENT PREDICTED PEAK</small><strong id="peakMetric">—</strong></div>
+        <div><small>PER-BREATH WAVEFORM MAE</small><strong id="maeMetric">—</strong></div>
+        <div><small>MODEL UNCERTAINTY</small><strong id="uncertaintyMetric">Not available</strong></div>
+      </div>
+      <p id="resultMessage" class="result-message">No breath prediction yet.</p>
+      <details id="predictionDetails" class="error-details" hidden><summary>Prediction details</summary><p id="predictionError"></p></details>
+      <div class="charts-grid">
+        <article class="panel chart-panel"><div class="chart-heading"><div><p class="eyebrow">AIRWAY PRESSURE</p><h3>Measured vs Predicted Airway Pressure</h3></div><span class="unit-label">cmH₂O</span></div>
+          <div class="legend"><span><i class="legend-line legend-measured"></i>Measured</span><span><i class="legend-line legend-predicted"></i>Model prediction</span></div>
+          <canvas id="pressureChart" aria-label="Measured and predicted airway pressure by time"></canvas><p id="pressureEmpty" class="empty-chart">No breath loaded.</p></article>
+        <article class="panel chart-panel"><div class="chart-heading"><div><p class="eyebrow">BREATH INPUT</p><h3>Ventilator Input — u_in / Valve State</h3></div><span class="unit-label">benchmark signal</span></div>
+          <div class="legend"><span><i class="legend-line legend-input"></i>u_in</span><span><i class="legend-box"></i>u_out = 1</span></div>
+          <canvas id="inputChart" aria-label="Benchmark input and valve state by time"></canvas><p id="inputEmpty" class="empty-chart">No breath loaded.</p></article>
+      </div>
+      <p class="metric-note">Per-breath waveform MAE is calculated for this displayed training breath only. It is not a model validation score.</p>
     </section>
-    <footer>Test-lung benchmark replay · No patient data · No ventilator controls</footer>
+
+    <section id="what-if" class="panel scenario-section" aria-labelledby="scenario-title">
+      <div class="section-heading"><div class="heading-copy"><p class="eyebrow">STEP 4 · PROPOSED CHANGE</p><h2 id="scenario-title">What-If Simulation</h2><p>Change the benchmark input and see the model-predicted airway-pressure response.</p></div><span id="scenarioState" class="result-tag">Simulation ready</span></div>
+      <div class="scenario-flow"><span>CURRENT INPUT</span><b>→</b><span>MODIFIED INPUT</span><b>→</b><span>PRESSURE MODEL</span><b>→</b><span>PROPOSED RESPONSE</span></div>
+      <div class="scenario-controls"><label>Benchmark input waveform scale<input id="scenarioScale" type="number" min="0" max="2" step="0.1" value="1.2"></label>
+        <button id="scenarioButton" class="button button-primary" type="button" disabled>Simulate Scenario</button>
+        <span id="scenarioSummary" class="meta-text">Run a current prediction to enable simulation.</span></div>
+      <p class="scenario-note">This modifies u_in only. Clinical ventilator settings are not represented in this dataset. Both curves below are model predictions; the PROPOSED curve uses the modified input.</p>
+    </section>
+
+    <section id="predicted-effect" class="panel effect-section" aria-labelledby="effect-title">
+      <div class="section-heading"><div class="heading-copy"><p class="eyebrow">CURRENT VS PROPOSED</p><h2 id="effect-title">Predicted Effect of the Change</h2></div><span id="effectStatus" class="result-tag">Run a scenario to compare</span></div>
+      <div class="effect-metrics">
+        <div><small>CURRENT</small><strong id="currentPeakMetric">—</strong></div>
+        <div><small>PROPOSED</small><strong id="proposedPeakMetric">—</strong></div>
+        <div class="change-metric"><small>CHANGE</small><strong id="peakChangeMetric">—</strong></div>
+      </div>
+      <div class="effect-explanation"><strong>WHAT HAPPENED?</strong><p id="scenarioExplanation">Run a scenario to compare current and proposed pressure predictions.</p></div>
+      <div class="chart-heading effect-chart-heading"><div><p class="eyebrow">PRESSURE MODEL OUTPUT</p><h3>Predicted Airway Pressure — Current vs Proposed</h3></div><span class="unit-label">cmH₂O</span></div>
+      <div class="legend effect-legend"><span><i class="legend-line legend-predicted"></i>CURRENT PREDICTION</span><span><i class="legend-line legend-input"></i>PROPOSED PREDICTION</span></div>
+      <canvas id="scenarioChart" aria-label="Current and proposed predicted airway pressure by time"></canvas>
+      <p class="metric-note">No counterfactual measured-pressure label exists, so accuracy for the modified input cannot be calculated. Model uncertainty is not available.</p>
+    </section>
+
+    <footer class="safety-footer"><strong>OFFLINE RESEARCH PROTOTYPE</strong><span>Test-lung benchmark</span><span>Local inference</span><span>Read-only</span><span>No ventilator control</span><span>Not a clinical recommendation</span>
+      <button id="clearButton" class="text-button" type="button">Clear local index and app log</button>
+    </footer>
   </main>
 </body>
 </html>

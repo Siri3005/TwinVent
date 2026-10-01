@@ -24,6 +24,20 @@ def log_event(event: str, **fields: Any) -> None:
             handle.write(json.dumps(record, separators=(",", ":")) + "\n")
 
 
+def log_scenario(**fields: Any) -> None:
+    """Locally audit scenario summaries without storing identifiers or waveforms."""
+    allowed = {key: fields[key] for key in (
+        "breath_id", "twin_state", "input_summary", "proposed_scenario",
+        "predicted_output", "uncertainty", "model_version", "validity", "user_action"
+    ) if key in fields}
+    record = {"at": datetime.now(timezone.utc).isoformat(), "event": "counterfactual_simulation",
+              "preprocessing_version": "benchmark-features-v1", **allowed}
+    with _LOCK:
+        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with LOG_PATH.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, separators=(",", ":")) + "\n")
+
+
 def clear_local_state() -> None:
     """Clear generated indexes and local event log, never source CSVs."""
     with _LOCK:

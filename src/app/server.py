@@ -19,7 +19,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from data_io.dataset_store import DatasetError, STORE  # noqa: E402
-from local_storage.session_log import clear_local_state, log_event  # noqa: E402
+from local_storage.session_log import clear_local_state, log_event, log_scenario  # noqa: E402
 from predictor_adapter.benchmark import BenchmarkModelAdapter  # noqa: E402
 from predictor_adapter.contracts import (  # noqa: E402
     PredictionError,
@@ -28,6 +28,7 @@ from predictor_adapter.contracts import (  # noqa: E402
     validate_prediction,
 )
 from predictor_adapter.mock import MockPredictor  # noqa: E402
+from predictor_adapter.twin_state import TWIN_STATES  # noqa: E402
 
 
 MAX_REQUEST_BYTES = 16_384
@@ -79,6 +80,12 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if parsed.path == "/api/health":
                 self._json(200, {"status": "ok", "offline": True, "app_version": "0.1.0"})
+            elif parsed.path == "/api/model-status":
+                try:
+                    model = BenchmarkModelAdapter()
+                    self._json(200, {"status": "ready", "model_version": model.model_version})
+                except PredictorUnavailable as exc:
+                    self._json(200, {"status": "unavailable", "reason": str(exc)})
             elif parsed.path == "/api/metadata":
                 source = query.get("source", [""])[0]
                 metadata = STORE.metadata(source)
@@ -97,6 +104,9 @@ class Handler(BaseHTTPRequestHandler):
                 if direction not in (-1, 1):
                     raise DatasetError("Navigation direction must be -1 or 1.")
                 self._json(200, {"breath_id": STORE.adjacent_id(source, breath_id, direction)})
+            elif parsed.path == "/api/twin-state":
+                source = query.get("source", [""])[0]
+                self._json(200, {"twin_state": TWIN_STATES.snapshot(source)})
             else:
                 self._json(404, {"error": "This local app route was not found."})
         except DatasetError as exc:
@@ -107,7 +117,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(500, {"error": "The local app encountered an unexpected error. No prediction was shown."})
 
     def do_POST(self) -> None:  # noqa: N802
-        if self.path != "/api/predict" and self.path != "/api/clear-local":
+        if self.path not in {"/api/predict", "/api/scenario", "/api/twin-reset", "/api/clear-local"}:
             self._json(404, {"error": "This local app route was not found."})
             return
         try:
@@ -122,11 +132,23 @@ class Handler(BaseHTTPRequestHandler):
                 clear_local_state()
                 self._json(200, {"status": "cleared", "message": "Local index cache and app event log cleared. Source CSV files were not changed."})
                 return
+            if self.path == "/api/twin-reset":
+                TWIN_STATES.reset(str(payload.get("source", "train")))
+                self._json(200, {"status": "reset"})
+                return
             source = str(payload.get("source", ""))
             breath_id = str(payload.get("breath_id", ""))
             model = str(payload.get("model", "mock"))
             breath = STORE.load_breath(source, breath_id)
             rows = breath["rows"]
+            scenario = self.path == "/api/scenario"
+            if scenario and (source != "train" or not breath["has_pressure"]):
+                raise ValueError("Benchmark counterfactual requires a measured-pressure train.csv breath.")
+            scale = float(payload.get("u_in_scale", 1.0)) if scenario else 1.0
+            if scenario and (not math.isfinite(scale) or scale < 0 or scale > 2):
+                raise ValueError("Input scale must be between 0 and 2.")
+            if scenario and model != "benchmark":
+                raise ValueError("Counterfactual simulation requires the trained benchmark model.")
             if model == "mock":
                 predictor = MockPredictor()
             elif model == "benchmark":
@@ -134,10 +156,13 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 raise ValueError("Select mock or benchmark as the predictor.")
             # Keep measured pressure out of the model input to prevent label leakage.
-            features = [
-                {key: row.get(key) for key in ("id", "time_step", "u_in", "u_out", "R", "C")}
-                for row in rows
-            ]
+            original_features = [{key: row.get(key) for key in ("id", "time_step", "u_in", "u_out", "R", "C")} for row in rows]
+            features = [dict(row, u_in=row["u_in"] * scale) for row in original_features] if scenario else original_features
+            for candidate in (original_features, features) if scenario else (features,):
+                if any(row["R"] not in (5, 20, 50) or row["C"] not in (10, 20, 50)
+                       or not 0 <= row["u_in"] <= 100 or not 0 <= row["time_step"] <= 3
+                       or row["u_out"] not in (0, 1) for row in candidate):
+                    raise ValueError("Input is outside the benchmark model's documented feature domain.")
             future = PREDICTION_POOL.submit(predictor.predict_breath, features)
             try:
                 result = future.result(timeout=PREDICTION_TIMEOUT_SECONDS)
@@ -152,8 +177,35 @@ class Handler(BaseHTTPRequestHandler):
                     model_version=getattr(predictor, "model_version", model),
                 )
             validate_prediction(result, features)
+            current_result = None
+            if scenario and result.status == "ok":
+                current_result = PREDICTION_POOL.submit(predictor.predict_breath, original_features).result(timeout=PREDICTION_TIMEOUT_SECONDS)
+                validate_prediction(current_result, original_features)
+                if current_result.status != "ok" or current_result.model_version != result.model_version:
+                    raise PredictionError("Could not obtain matching current prediction for this scenario.")
             log_event("prediction", source=source, breath_id=breath["breath_id"], status=result.status, model_version=result.model_version)
-            self._json(200, {**result.as_dict(), "source": source, "breath_id": breath["breath_id"]})
+            if result.status == "ok" and not scenario:
+                twin_state = TWIN_STATES.update(source, rows, int(breath["breath_id"]), result.model_version)
+            else:
+                twin_state = None
+            if result.status == "ok" and scenario:
+                log_event("scenario", source=source, breath_id=breath["breath_id"], status="ok", model_version=result.model_version)
+                log_scenario(breath_id=int(breath["breath_id"]), twin_state=TWIN_STATES.snapshot(source),
+                             input_summary={"samples": len(rows), "u_in_scale": scale},
+                             proposed_scenario={"kind": "benchmark_u_in_scale", "scale": scale},
+                             predicted_output={"samples": len(result.pressure), "peak_pressure": max(result.pressure)},
+                             uncertainty="Not available", model_version=result.model_version,
+                             validity="valid", user_action="simulate_counterfactual")
+            response = {**result.as_dict(), "source": source, "breath_id": breath["breath_id"],
+                        "twin_state": twin_state, "scenario": {"kind": "benchmark_u_in_scale", "scale": scale} if scenario else None}
+            if scenario and current_result:
+                current_peak = max(current_result.pressure)
+                proposed_peak = max(result.pressure)
+                response.update({"current_pressure": current_result.pressure,
+                                 "current_model_version": current_result.model_version,
+                                 "peak_change": proposed_peak - current_peak,
+                                 "overlap": all(abs(a-b) <= 1e-8 for a,b in zip(current_result.pressure, result.pressure))})
+            self._json(200, response)
         except PredictorUnavailable as exc:
             result = PredictionResult([], [], [], "unavailable", str(exc), "benchmark-unavailable")
             log_event("prediction", status="unavailable", model_version="benchmark-unavailable")

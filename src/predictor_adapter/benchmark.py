@@ -1,66 +1,88 @@
-"""Adapter for the future Owner 1 benchmark model artifact."""
+"""Bridge Owner 1's PressurePredictor to Owner 2's offline app contract."""
 
 from __future__ import annotations
 
-import importlib.util
 from pathlib import Path
-import sys
+import threading
 from typing import Any
 
 from .contracts import PredictionError, PredictionResult, PredictorUnavailable
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MODEL_PATH = ROOT / "artifacts" / "model" / "predictor.py"
+MODEL_PATH = ROOT / "artifacts" / "model" / "final_model.pkl"
+MODEL_VERSION = "1.0.0"
+_LOAD_LOCK = threading.Lock()
 
 
 class BenchmarkModelAdapter:
+    """Load the trained artifact once and adapt its DataFrame API for the app.
+
+    Owner 1 supplies a PressurePredictor class instead of the temporary
+    ``predictor.py`` interface originally sketched for parallel development.
+    This adapter keeps that package detail inside the backend and exposes the
+    stable row-dictionary interface used by the app.
+    """
+
+    _predictor: Any = None
+
     def __init__(self, model_path: Path = MODEL_PATH) -> None:
         if not model_path.is_file():
             raise PredictorUnavailable(
-                "The Owner 1 benchmark model is not installed yet. Use the mock for a demo, "
-                "or place artifacts/model/predictor.py in the agreed format."
+                "The Owner 1 trained model is missing. Expected "
+                "artifacts/model/final_model.pkl."
             )
-        spec = importlib.util.spec_from_file_location("twinvent_benchmark_predictor", model_path)
-        if spec is None or spec.loader is None:
-            raise PredictorUnavailable("The benchmark model file could not be loaded.")
-        module = importlib.util.module_from_spec(spec)
-        try:
-            sys.modules[spec.name] = module
-            spec.loader.exec_module(module)
-        except Exception as exc:
-            sys.modules.pop(spec.name, None)
-            raise PredictorUnavailable(f"The benchmark model could not be initialized: {exc}") from exc
-        predict = getattr(module, "predict_breath", None)
-        if not callable(predict):
-            raise PredictorUnavailable("The model file must provide predict_breath(rows).")
-        self._predict = predict
-        self.model_version = str(getattr(module, "MODEL_VERSION", "benchmark-unversioned"))
+        cls = type(self)
+        if cls._predictor is None:
+            with _LOAD_LOCK:
+                if cls._predictor is None:
+                    try:
+                        from model_training.inference_wrapper import PressurePredictor
+
+                        predictor = PressurePredictor(model_path=str(model_path))
+                        predictor.load_model()
+                        cls._predictor = predictor
+                    except Exception as exc:
+                        raise PredictorUnavailable(
+                            "The Owner 1 model could not be loaded. Install its local "
+                            "runtime dependencies from requirements.txt and check the "
+                            f"model artifact. Details: {exc}"
+                        ) from exc
+        self._predict = cls._predictor
+        self.model_version = str(self._predict.VERSION or MODEL_VERSION)
 
     def predict_breath(self, rows: list[dict[str, Any]]) -> PredictionResult:
+        if not rows:
+            return PredictionResult([], [], [], "abstain", "No rows were provided.", self.model_version)
         try:
-            raw = self._predict(rows)
-        except Exception as exc:
-            raise PredictionError(f"Benchmark model failed: {exc}") from exc
-        if isinstance(raw, PredictionResult):
-            return raw
-        if not isinstance(raw, dict):
-            raise PredictionError("Benchmark model must return a prediction dictionary.")
-        try:
-            ids = [int(value) for value in raw["row_ids"]]
-            pressure = [None if value is None else float(value) for value in raw["pressure"]]
-            uncertainty = raw.get("uncertainty")
-            if uncertainty is None:
-                uncertainty = [None] * len(ids)
-            else:
-                uncertainty = [None if value is None else float(value) for value in uncertainty]
+            import pandas as pd
+
+            # Do not include pressure or breath_id: the model only needs its
+            # documented features, and the measured target must not leak in.
+            frame = pd.DataFrame(rows, columns=["id", "time_step", "u_in", "u_out", "R", "C"])
+            output = self._predict.predict_breath(frame, return_uncertainty=False)
+            ids = [int(value) for value in output["id"].tolist()]
+            statuses = set(str(value) for value in output["status"].tolist())
+            reason_values = [str(value) for value in output["reason"].tolist() if value and str(value) != "nan"]
+            reason = "; ".join(dict.fromkeys(reason_values)) or None
+
+            if statuses == {"abstain"}:
+                return PredictionResult(ids, [], [], "abstain", reason or "The benchmark model abstained.", self.model_version)
+            if statuses != {"ok"}:
+                raise PredictionError("Owner 1 model returned mixed or unknown row statuses.")
+
+            pressure = [float(value) for value in output["pressure"].tolist()]
             return PredictionResult(
                 row_ids=ids,
                 pressure=pressure,
-                uncertainty=uncertainty,
-                status=str(raw.get("status", "ok")),
-                reason=raw.get("reason"),
-                model_version=str(raw.get("model_version", self.model_version)),
+                # Owner 1's optional uncertainty is currently a placeholder,
+                # so do not present it as a calibrated confidence estimate.
+                uncertainty=[None] * len(ids),
+                status="ok",
+                reason=reason,
+                model_version=self.model_version,
             )
-        except (KeyError, TypeError, ValueError) as exc:
-            raise PredictionError("Benchmark model returned an invalid result structure.") from exc
+        except PredictionError:
+            raise
+        except Exception as exc:
+            raise PredictionError(f"Owner 1 benchmark model failed: {exc}") from exc

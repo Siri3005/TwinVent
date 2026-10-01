@@ -1,47 +1,65 @@
-# TwinVent predictor interface contract
+# Owner 1 model to Owner 2 app integration
 
-This contract lets Owner 2 build the replay app while Owner 1 develops the benchmark model. The app uses the mock implementation until the real model artifact is available.
+The first parallel-workflow contract proposed an `artifacts/model/predictor.py` module. Owner 1's completed work provides a `PressurePredictor` class in `src/model_training/inference_wrapper.py` and a trained artifact at `artifacts/model/final_model.pkl`. The app now bridges to that real interface through `src/predictor_adapter/benchmark.py`; no extra model module is needed.
 
-## Input
+## Data passed to the model
 
-The app calls `predict_breath(rows)` once for a selected breath. `rows` is an ordered list of 80 dictionaries. Every dictionary contains only these fields:
+For one selected breath, the app sends a list of ordered dictionaries containing only:
 
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `id` | integer | Original CSV row ID; output must preserve this exact order. |
-| `time_step` | finite number | Time within the breath. |
-| `u_in` | finite number | Dataset input signal. |
-| `u_out` | integer, 0 or 1 | Dataset output-valve state. |
-| `R` | finite number or `None` | Artificial test-lung resistance if supplied. |
-| `C` | finite number or `None` | Artificial test-lung compliance if supplied. |
+| Field | Meaning |
+| --- | --- |
+| `id` | Original CSV sample ID; used to align the returned curve. |
+| `time_step` | Time within the breath, in seconds. |
+| `u_in` | Inspiratory input signal. |
+| `u_out` | Valve state, 0 or 1. |
+| `R` | Artificial test-lung resistance. Required by this model. |
+| `C` | Artificial test-lung compliance. Required by this model. |
 
-The input intentionally excludes measured `pressure`; this prevents the target from leaking into prediction features. R and C are optional at the app boundary for future adapters, but Owner 1's first benchmark may require them. The app must never invent or impute them silently.
+The measured `pressure` and dataset `breath_id` are not sent to the predictor. This avoids target leakage and keeps the call scoped to one breath. The dataset reader sorts each breath by `time_step`, checks the 80-row shape and constant R/C values, and rejects missing mechanics rather than filling them in.
 
-## Model artifact
+## Owner 1 API
 
-Place the Python module at `artifacts/model/predictor.py`. It must export a `predict_breath(rows)` function and may export `MODEL_VERSION = "model-name-version"`. It must run locally without internet access and return within a short interactive response time.
-
-## Successful output
-
-Return a dictionary (or `PredictionResult`) with this structure:
+The adapter loads `artifacts/model/final_model.pkl` through Owner 1's wrapper:
 
 ```python
+from model_training.inference_wrapper import PressurePredictor
+
+predictor = PressurePredictor(model_path="artifacts/model/final_model.pkl")
+predictor.load_model()
+prediction = predictor.predict_breath(breath_dataframe, return_uncertainty=False)
+```
+
+The wrapper returns a DataFrame with `id`, `pressure`, `status`, `reason`, and `model_version`. The adapter converts this into the app response below. The model is loaded lazily and reused for subsequent breaths.
+
+## App response
+
+Successful response:
+
+```json
 {
-    "row_ids": [101, 102],
-    "pressure": [5.8, 6.2],
-    "uncertainty": [None, None],
-    "status": "ok",
-    "reason": None,
-    "model_version": "benchmark-v1",
+  "row_ids": [101, 102],
+  "pressure": [5.8, 6.2],
+  "uncertainty": [null, null],
+  "status": "ok",
+  "reason": null,
+  "model_version": "1.0.0"
 }
 ```
 
-The example is abbreviated; a real result must contain one ID, pressure, and uncertainty entry for every input row. `row_ids` must match the input `id` values exactly and in order. Pressure values must be finite numbers. `uncertainty` is optional; if omitted, the app fills it with `None` values.
+The arrays contain one value per input row. IDs must match exactly and in order, and pressure values must be finite. The adapter does not expose Owner 1's current uncertainty value because the wrapper describes it as a placeholder based on prediction magnitude, not a calibrated uncertainty estimate.
 
-## Non-success status
+When Owner 1's wrapper returns `abstain`, the adapter returns the matching row IDs with empty pressure and uncertainty lists. The UI clears any previous curve and displays the model's reason. Missing model files or runtime dependencies produce an `unavailable` response. A model execution or output-contract error produces an error response; neither case shows a partial curve.
 
-Use `status` equal to `abstain` when the model deliberately declines to predict. `reason` should state why. The app also understands `unavailable` and `error` for adapter/startup failures. For a non-success status, return empty pressure and uncertainty lists; the app must not show a partial or stale curve.
+## Runtime requirements
 
-## Unit and scope
+The app and mock predictor use the Python standard library. To run the Owner 1 model, install its local dependencies from the repository root before going offline:
 
-Pressure is plotted as cmH2O for this competition dataset. Preserve the data's numerical scale and document any preprocessing in the model package. This is an artificial test-lung benchmark interface, not a clinical API or ventilator-control interface.
+```powershell
+python -m pip install -r requirements.txt
+```
+
+No network call is made by the app or predictor during inference. The browser app binds only to `127.0.0.1`.
+
+## Scope and interpretation
+
+The pressure unit follows the benchmark specification's assumed cmH₂O scale. Owner 1's model was trained on artificial test-lung data and predicts the pressure represented by the provided input samples. It does not represent an identified patient's lung, estimate ARDS status, predict outcomes, or simulate a validated clinical setting intervention. Do not describe this integration as a patient-specific digital twin or use it to guide ventilator settings.
